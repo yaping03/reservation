@@ -1,0 +1,66 @@
+{% load myfilter %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link rel="stylesheet" href="/static/bootstrap/css/bootstrap.min.css">
+    <style>
+        .cho{
+            background-color: green;
+        }
+    </style>
+</head>
+<body>
+{% csrf_token %}
+<div class="container">
+    <h2>会议室预定</h2>
+    <table class="table table-bordered" style="margin-top: 100px">
+        <tr>
+            <th>会议室</th>
+            {% for item in timer %}
+                <th>{{ item.timer|time:"H:i" }}</th>
+            {% endfor %}
+        </tr>
+    <tbody>
+        {% for cf in confe %}
+            <tr>
+            <td>{{ cf.name }}</td>
+            {% for item in timer %}
+                {% if item in res and cf.name == res|filter_multi:item %}
+                    <td class="{{ item.id }}" style="background-color: red">{{ res|my_filter:item }}</td>
+                {% else %}
+                    <td class="{{ item.id }} choose"></td>
+                {% endif %}
+
+            {% endfor %}
+            </tr>
+        {% endfor %}
+    </tbody>
+    </table>
+<div style="float: right"><button class="btn btn-success commit">提交</button></div>
+</div>
+<script src="/static/jquery.js"></script>
+<script>
+    $("tbody").on("click",".choose",function () {
+        $(this).toggleClass("cho")
+    });
+    $(".commit").click(function () {
+        commitlist=[];
+       $(".cho").each(function () {
+           var conf = $(this).parent().children().first().text();
+           var tid = $(this)[0].className[0];
+           commitlist.push([conf,tid])
+       });
+        $.ajax({
+            url:"/showtime/",
+            type:"POST",
+            data:{"csrfmiddlewaretoken":$("[name='csrfmiddlewaretoken']").val(),commit:JSON.stringify(commitlist)},
+            success:function () {
+                alert("ok")
+            }
+        })
+    })
+</script>
+</body>
+</html>
