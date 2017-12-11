@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<form method="post" novalidate>
+    {% csrf_token %}
+    <p><input type="text" name = "user"></p>
+    <p><input type="password" name = "pwd"></p>
+    <p><input type="submit" value="登陆"> <span style="color: red">{{ status }}</span></p>
+</form>
+</body>
+</html>
