@@ -1,11 +1,12 @@
 {% load myfilter %}
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <title>Title</title>
-    <link rel="stylesheet" href="/static/bootstrap/css/bootstrap.min.css">
-    <link rel="stylesheet" href="/static/bootstrap/css/bootstrap-datetimepicker.min.css">
+    <link rel="stylesheet" href="{% static 'bootstrap/css/bootstrap.min.css'%}">
+    <link rel="stylesheet" href="{% static 'bootstrap/css/bootstrap-datetimepicker.min.css'%}">
     <style>
         .cho{
             background-color: green;
@@ -13,30 +14,77 @@
         .used{
             background-color: red;
         }
+        .shade {
+            position: fixed;
+            z-index: 1040;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #999;
+            filter: alpha(opacity=50);
+            -moz-opacity: 0.5;
+            opacity: 0.5;
+        }
+
+        .loading {
+            position: fixed;
+            z-index: 1050;
+            top: 40%;
+            left: 50%;
+            height: 32px;
+            width: 32px;
+            margin: 0 0 0 -16px;
+            background: url(/static/img/loading.gif);
+        }
     </style>
 </head>
 <body>
-<script src="/static/jquery.js"></script>
-<script src="/static/bootstrap/js/bootstrap.min.js"></script>
-<script src="/static/bootstrap/js/bootstrap-datetimepicker.min.js"></script>
-<script src="/static/bootstrap/js/bootstrap-datetimepicker.min.js"></script>
-<script src="/static/bootstrap/js/bootstrap-datetimepicker.fr.js"></script>
+<script src="{% static 'jquery.js'%}"></script>
+<script src="{% static 'static/bootstrap/js/bootstrap.min.js'%}"></script>
+<script src="{% static 'bootstrap/js/bootstrap-datetimepicker.min.js' %}"></script>
+<script src="{%static 'bootstrap/js/bootstrap-datetimepicker.min.js' %}"></script>
+<script src="{%static 'bootstrap/js/bootstrap-datetimepicker.fr.js'%}"></script>
 {% csrf_token %}
 <div class="container">
     <h2>会议室预定</h2>
     <div>欢迎您的使用: &nbsp; <a href="#">{{ name }}</a></div>
-    <div style="float: right">
-        <div class="input-append date form_datetime">
-    <input class="datetime" size="20" type="text" value="{{ date }}" readonly>
-    <span class="add-on"><i class="icon-th"></i></span>
-</div>
+{#    <div style="float: right">#}
+{#        <div class="input-append date form_datetime">#}
+{#    <input class="datetime" size="20" type="text" value="{{ date }}" readonly>#}
+{#    <span class="add-on"><i class="icon-th"></i></span>#}
+{#</div>#}
+{#<script>#}
+{#    $(".datetime").datetimepicker({#}
+{#        format: "dd mm yyyy"#}
+{#    });#}
+{#</script>#}
+{##}
+{#    </div>#}
 
-<script type="text/javascript">
-    $(".form_datetime").datetimepicker({
-        format: "dd mm yyyy"
-    });
-</script>
+<div class="clearfix" style="padding: 10px 0;float: right">
+        <div style="float: left;color: red" id="errors"></div>
+        <div class='input-group' style="width: 230px;float:left;">
+            <input type='text' class="form-control" id='datetimepicker11' value="{{ date }}" placeholder="请选择日期"/>
+            <span class="input-group-addon">
+                <span class="glyphicon glyphicon-calendar">
+                </span>
+            </span>
+        </div>
+        <div style="padding: 0 5px;float: left">
+            <a id="save" href="#" class="btn btn-primary commit">保存</a>
+        </div>
     </div>
+<script>
+    $('#datetimepicker11').datetimepicker({
+            minView: "month",
+            sideBySide: true,
+            format: 'dd mm yyyy',
+            bootcssVer: 3,
+            startDate: new Date(),
+            autoclose: true,
+        });
+</script>
     <table class="table table-bordered" style="margin-top: 200px">
         <tr>
             <th>会议室</th>
@@ -64,6 +112,14 @@
         {% endfor %}
     </tbody>
     </table>
+
+<!-- 遮罩层开始 -->
+<div id='shade' class='shade hide'></div>
+<!-- 遮罩层结束 -->
+<!-- 加载层开始 -->
+<div id='loading' class='loading hide'></div>
+<!-- 加载层结束 -->
+
 <div style="float: right"><button class="btn btn-success commit">提交</button></div>
 </div>
 <script>
@@ -75,6 +131,7 @@
         $(this).children().toggleClass("hide");
     });
     $(".commit").click(function () {
+        $("#shade,#loading").removeClass("hide");
         commitlist=[];
        $(".cho").each(function () {
            var conf = $(this).parent().children().first().text();
@@ -93,16 +150,15 @@
             type:"POST",
             data:{"csrfmiddlewaretoken":$("[name='csrfmiddlewaretoken']").val(),commit:JSON.stringify(commitlist),
             'dellist':JSON.stringify(dellist),
-            date:$(".datetime").val()},
+            date:$("#datetimepicker11").val()},
             success:function (data) {
                 if (data ==="ok"){
-                    alert("提交成功");
-                   location.href='/showtime/?date='+$(".datetime").val()
+                   location.href='/showtime/?date='+$("#datetimepicker11").val()
                 }
             }
         })
     });
-     $(".datetime").change(function () {
+     $("#datetimepicker11").change(function () {
          var date = $(this).val();
         $.ajax({
             url:"/showtime/",

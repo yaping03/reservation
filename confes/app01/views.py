@@ -1,6 +1,7 @@
 from django.shortcuts import render,redirect,HttpResponse
 from app01 import models
 import json
+import datetime
 # Create your views here.
 
 
@@ -9,6 +10,8 @@ def showtime(request):
     if not msg:
         return redirect("/login")
     date = request.GET.get("date")
+    if not date:
+        date = datetime.datetime.now().strftime("%d %m %Y")
     if date:
         day, month, year = date.split(" ")
         date_obj = models.Date.objects.filter(date__year=year,date__month=month,date__day=day).first()
@@ -58,8 +61,6 @@ def showtime(request):
                     models.Date2Timer.objects.filter(confe=conference,date=date_obj,people=people,timer=time).delete()
         print("成功")
         return HttpResponse("ok")
-    if not date:
-        date = "09 12 2017"
     return render(request,"showtime.html",{"timer":timer,"confe":confe,"res":res_dict,"name":name,"date":date})
 
 def login(request):
